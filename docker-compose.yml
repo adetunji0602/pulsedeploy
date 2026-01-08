@@ -1,0 +1,12 @@
+version: "3.9"
+
+services:
+  pulsedeploy:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: pulsedeploy:latest
+    container_name: pulsedeploy
+    ports:
+      - "8083:80"
+    restart: always

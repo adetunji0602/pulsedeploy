@@ -1,0 +1,24 @@
+name: CI-CD
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-test-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Run tests
+      run: |
+        pip install pytest fastapi uvicorn
+        pytest app/
+
+    - name: Build Docker image
+      run: docker build -t pulsedeploy ./docker
+
+    - name: Deploy with Helm
+      run: |
+        helm upgrade --install pulsedeploy helm/pulsedeploy
