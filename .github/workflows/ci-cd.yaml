@@ -1,0 +1,48 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/pulsedeploy
+  IMAGE_TAG: ${{ github.sha }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Run tests
+      run: |
+        pip install -r app/requirements.txt
+        pytest app/tests
+
+    - name: Login to GHCR
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GHCR_TOKEN }}
+
+    - name: Build and push image
+      run: |
+        docker build -t $IMAGE_NAME:$IMAGE_TAG -f docker/Dockerfile .
+        docker push $IMAGE_NAME:$IMAGE_TAG
+
+    - name: Setup kubeconfig
+      run: |
+        echo "${{ secrets.KUBECONFIG }}" | base64 -d > kubeconfig
+      env:
+        KUBECONFIG: kubeconfig
+
+    - name: Deploy with Helm
+      run: |
+        helm upgrade --install pulsedeploy helm/pulsedeploy \
+          --namespace pulsedeploy \
+          --create-namespace \
+          --set image.repository=$IMAGE_NAME \
+          --set image.tag=$IMAGE_TAG
