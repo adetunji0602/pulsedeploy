@@ -5,8 +5,8 @@ on:
     branches: [ main ]
 
 env:
-  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/pulsedeploy
-  IMAGE_TAG: ${{ github.sha }}
+  IMAGE_NAME: ghcr.io/adetunji0602/pulsedeploy
+  IMAGE_TAG: latest
 
 jobs:
   deploy:
@@ -44,8 +44,8 @@ jobs:
 
     - name: Build and push image
       run: |
-        docker build -t $IMAGE_NAME:$IMAGE_TAG -f docker/Dockerfile .
-        docker push $IMAGE_NAME:$IMAGE_TAG
+        docker build -t ghcr.io/adetunji0602/pulsedeploy:latest -f docker/Dockerfile .
+        docker push ghcr.io/adetunji0602/pulsedeploy:latest
 
     - name: Setup kubeconfig
       run: |
