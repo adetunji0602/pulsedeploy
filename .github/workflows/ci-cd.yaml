@@ -20,25 +20,53 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    # ✅ 1. Set up Python (MUST come before pip / pytest)
+    # ------------------ TERRAFORM INFRA ------------------
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.6.0
+
+    - name: Terraform Init
+      working-directory: terraform/aks
+      run: terraform init
+
+    - name: Terraform Plan
+      working-directory: terraform/aks
+      run: terraform plan -out=tfplan
+
+    - name: Terraform Apply
+      working-directory: terraform/aks
+      run: terraform apply -auto-approve tfplan
+
+    # ------------------ EXTRACT AKS INFO ------------------
+    - name: Get AKS output from Terraform
+      working-directory: terraform/aks
+      id: aks
+      run: |
+        echo "RESOURCE_GROUP=$(terraform output -raw resource_group)" >> $GITHUB_ENV
+        echo "CLUSTER_NAME=$(terraform output -raw cluster_name)" >> $GITHUB_ENV
+
+    # ------------------ PYTHON BUILD & TEST ------------------
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: "3.10"
 
-    # ✅ 2. Install dependencies + install your package
     - name: Install dependencies and package
       run: |
         python -m pip install --upgrade pip
         pip install -r app/requirements.txt
         pip install -e .
 
-    # ✅ 3. Run tests ONCE
     - name: Run tests
       run: pytest
 
-    # ------------------ DOCKER & DEPLOY ------------------
-
+    # ------------------ DOCKER & GHCR ------------------
     - name: Login to GHCR
       uses: docker/login-action@v2
       with:
@@ -51,11 +79,13 @@ jobs:
         docker build -t $IMAGE_NAME:$IMAGE_TAG -f docker/Dockerfile .
         docker push $IMAGE_NAME:$IMAGE_TAG
 
-    - name: Setup kubeconfig
+    # ------------------ KUBERNETES DEPLOY ------------------
+    - name: Get AKS credentials from Terraform output
       run: |
-        echo "${{ secrets.KUBECONFIG }}" | base64 -d > kubeconfig
-      env:
-        KUBECONFIG: kubeconfig
+        az aks get-credentials \
+          --resource-group $RESOURCE_GROUP \
+          --name $CLUSTER_NAME \
+          --overwrite-existing
 
     - name: Deploy with Helm
       run: |
