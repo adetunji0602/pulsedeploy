@@ -4,6 +4,10 @@ on:
   push:
     branches: [ main ]
 
+permissions:
+  contents: read       # needed for checkout
+  packages: write      # needed to push Docker images
+
 env:
   IMAGE_NAME: ghcr.io/adetunji0602/pulsedeploy
   IMAGE_TAG: latest
@@ -44,8 +48,8 @@ jobs:
 
     - name: Build and push image
       run: |
-        docker build -t ghcr.io/adetunji0602/pulsedeploy:latest -f docker/Dockerfile .
-        docker push ghcr.io/adetunji0602/pulsedeploy:latest
+        docker build -t $IMAGE_NAME:$IMAGE_TAG -f docker/Dockerfile .
+        docker docker push $IMAGE_NAME:$IMAGE_TAG
 
     - name: Setup kubeconfig
       run: |
