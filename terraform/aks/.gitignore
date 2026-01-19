@@ -1,18 +1,7 @@
 # Terraform
 .terraform/
 *.tfstate
-*.tfstate.*
-.crash.log
-.terraform.lock.hcl
-
-# Environment variables
-*.tfvars
-*.tfvars.json
-
-# OS
-.DS_Store
-Thumbs.db
-
+*.tfstate.backup
 
 # Python
 __pycache__/

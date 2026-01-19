@@ -2,58 +2,36 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "pulsedeploy.fullname" . }}
-  labels:
-    app.kubernetes.io/name: {{ include "pulsedeploy.name" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "pulsedeploy.name" . }}
-      app.kubernetes.io/instance: {{ .Release.Name }}
-
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 0
-
+      app: {{ include "pulsedeploy.name" . }}
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ include "pulsedeploy.name" . }}
-        app.kubernetes.io/instance: {{ .Release.Name }}
-
+        app: {{ include "pulsedeploy.name" . }}
     spec:
-      terminationGracePeriodSeconds: 30
-
       containers:
         - name: pulsedeploy
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-
           ports:
-            - name: http
-              containerPort: {{ .Values.service.targetPort }}
+            - containerPort: {{ .Values.service.targetPort }}
 
           livenessProbe:
             httpGet:
               path: {{ .Values.livenessProbe.path }}
-              port: http
+              port: {{ .Values.service.targetPort }}
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
 
           readinessProbe:
             httpGet:
               path: {{ .Values.readinessProbe.path }}
-              port: http
+              port: {{ .Values.service.targetPort }}
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
 
           resources:
 {{ toYaml .Values.resources | indent 12 }}
-
-          securityContext:
-            allowPrivilegeEscalation: false
-            runAsNonRoot: true
-            runAsUser: 1000

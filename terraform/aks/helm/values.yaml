@@ -1,39 +1,29 @@
-replicaCount: 2
+replicaCount: 1
 
 image:
   repository: ghcr.io/adetunji0602/pulsedeploy
-  tag: "latest"
   pullPolicy: IfNotPresent
+  tag: "latest"
 
 service:
   type: ClusterIP
   port: 80
   targetPort: 9090
 
-ingress:
-  enabled: true
-  host: pulsedeploy.eastus.cloudapp.azure.com
-
 resources:
+  limits:
+    cpu: "250m"
+    memory: "256Mi"
   requests:
     cpu: "100m"
     memory: "128Mi"
-  limits:
-    cpu: "500m"
-    memory: "256Mi"
 
 livenessProbe:
-  path: /
+  path: /health
   initialDelaySeconds: 10
   periodSeconds: 10
 
 readinessProbe:
-  path: /
+  path: /health
   initialDelaySeconds: 5
   periodSeconds: 5
-
-autoscaling:
-  enabled: true
-  minReplicas: 2
-  maxReplicas: 5
-  targetCPUUtilizationPercentage: 70
