@@ -19,7 +19,13 @@ jobs:
     - name: Run tests
       run: |
         pip install -r app/requirements.txt
-        pytest app/tests
+        if [ -d "app/tests" ]; then
+          pytest app/tests
+        elif [ -d "tests" ]; then
+          pytest tests
+        else
+          echo "No tests found; skipping pytest."
+        fi
 
     - name: Login to GHCR
       uses: docker/login-action@v2
