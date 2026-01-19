@@ -46,7 +46,7 @@ jobs:
     # ------------------ EXTRACT AKS INFO ------------------
     - name: Get AKS output from Terraform
       working-directory: terraform/aks
-      id: aks
+      shell: bash
       run: |
         echo "RESOURCE_GROUP=$(terraform output -raw resource_group)" >> $GITHUB_ENV
         echo "CLUSTER_NAME=$(terraform output -raw cluster_name)" >> $GITHUB_ENV
