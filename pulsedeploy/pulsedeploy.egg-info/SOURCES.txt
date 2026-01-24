@@ -1,9 +1,0 @@
-README.md
-pyproject.toml
-pulsedeploy/init.py
-pulsedeploy/main.py
-pulsedeploy.egg-info/PKG-INFO
-pulsedeploy.egg-info/SOURCES.txt
-pulsedeploy.egg-info/dependency_links.txt
-pulsedeploy.egg-info/top_level.txt
-tests/test_app.py
